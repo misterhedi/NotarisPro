@@ -1886,8 +1886,25 @@ Berdasarkan PP 24 Tahun 1997, satu-satunya alat bukti peralihan kepemilikan tana
                         <p className="text-[10px] font-black uppercase text-slate-400 font-mono tracking-widest pl-1">PROGRES PENANGANAN AKTA:</p>
                         <div className="grid grid-cols-5 gap-2 relative">
                           
-                          {/* Background alignment bar line */}
-                          <div className="absolute top-4 left-4 right-4 h-1 bg-slate-200 dark:bg-white/5 -z-0"></div>
+                          {/* Background alignment bar track */}
+                          <div className="absolute top-4 left-[10%] right-[10%] h-1 bg-slate-200 dark:bg-white/10 -z-0 rounded-full overflow-hidden">
+                            <motion.div 
+                              initial={{ width: '0%' }}
+                              animate={{ 
+                                width: `${
+                                  (([
+                                    true,
+                                    searchedOrderResult.status !== 'Menunggu Hubungi',
+                                    searchedOrderResult.status !== 'Menunggu Hubungi' && searchedOrderResult.status !== 'Menunggu Verifikasi',
+                                    searchedOrderResult.status === 'Dijadwalkan' || searchedOrderResult.status === 'Selesai',
+                                    searchedOrderResult.status === 'Selesai'
+                                  ].filter(Boolean).length - 1) / 4) * 100
+                                }%` 
+                              }}
+                              transition={{ duration: 0.6, ease: "easeInOut" }}
+                              className="h-full bg-gradient-to-r from-[#0B192C] to-[#D4AF37] dark:from-white dark:to-[#D4AF37] rounded-full"
+                            />
+                          </div>
 
                           {[
                             { step: 1, label: 'Pengajuan', desc: 'Permohonan Masuk', cond: true },
@@ -1895,19 +1912,61 @@ Berdasarkan PP 24 Tahun 1997, satu-satunya alat bukti peralihan kepemilikan tana
                             { step: 3, label: 'Verifikasi', desc: 'SABH/Pengecekan Pajak', cond: searchedOrderResult.status !== 'Menunggu Hubungi' && searchedOrderResult.status !== 'Menunggu Verifikasi' },
                             { step: 4, label: 'Minuta', desc: 'Tanda Tangan Fisik', cond: searchedOrderResult.status === 'Dijadwalkan' || searchedOrderResult.status === 'Selesai' },
                             { step: 5, label: 'Terdaftar', desc: 'Rampung Kemenkumham', cond: searchedOrderResult.status === 'Selesai' }
-                          ].map((stepObj) => (
-                            <div key={stepObj.step} className="text-center space-y-2 relative z-10">
-                              <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs mx-auto border-2 ${
-                                stepObj.cond 
-                                  ? 'bg-[#0B192C] text-[#D4AF37] border-[#D4AF37] dark:bg-white dark:text-navy-950 dark:border-[#D4AF37]' 
-                                  : 'bg-slate-200 text-slate-400 border-slate-300 dark:bg-[#060F1E] dark:text-slate-500 dark:border-white/5'
-                              }`}>
-                                {stepObj.cond ? '✓' : stepObj.step}
+                          ].map((stepObj) => {
+                            const isCompleted = stepObj.cond;
+                            return (
+                              <div key={stepObj.step} className="text-center space-y-2 relative z-10">
+                                <motion.div
+                                  initial={false}
+                                  animate={{
+                                    backgroundColor: isCompleted 
+                                      ? (isDark ? '#ffffff' : '#0B192C') 
+                                      : (isDark ? '#060F1E' : '#e2e8f0'),
+                                    borderColor: isCompleted 
+                                      ? '#D4AF37' 
+                                      : (isDark ? 'rgba(255,255,255,0.06)' : '#cbd5e1'),
+                                    color: isCompleted 
+                                      ? (isDark ? '#0B192C' : '#D4AF37') 
+                                      : (isDark ? '#64748b' : '#94a3b8'),
+                                    scale: isCompleted ? [1, 1.15, 1] : 1,
+                                    boxShadow: isCompleted 
+                                      ? '0 0 10px rgba(212, 175, 55, 0.35)' 
+                                      : '0 0 0px rgba(0,0,0,0)'
+                                  }}
+                                  transition={{ 
+                                    type: 'spring', 
+                                    stiffness: 170, 
+                                    damping: 14,
+                                    delay: stepObj.step * 0.05
+                                  }}
+                                  className="h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs mx-auto border-2 relative select-none"
+                                >
+                                  {isCompleted ? '✓' : stepObj.step}
+                                </motion.div>
+                                
+                                <motion.p 
+                                  animate={{
+                                    color: isCompleted 
+                                      ? (isDark ? '#D4AF37' : '#0B192C') 
+                                      : (isDark ? '#64748b' : '#94a3b8')
+                                  }}
+                                  transition={{ duration: 0.3 }}
+                                  className="text-[10px] sm:text-xs font-black leading-none"
+                                >
+                                  {stepObj.label}
+                                </motion.p>
+                                
+                                <motion.p 
+                                  animate={{ 
+                                    opacity: isCompleted ? 1 : 0.6 
+                                  }}
+                                  className="text-[8px] text-slate-400 dark:text-slate-500 leading-normal font-sans tracking-tight block max-w-full truncate"
+                                >
+                                  {stepObj.desc}
+                                </motion.p>
                               </div>
-                              <p className={`text-[10px] sm:text-xs font-black leading-none ${stepObj.cond ? 'text-[#0B192C] dark:text-[#D4AF37]' : 'text-slate-400'}`}>{stepObj.label}</p>
-                              <p className="text-[8px] text-slate-400 dark:text-slate-500 leading-normal font-sans tracking-tight block max-w-full truncate">{stepObj.desc}</p>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
 
