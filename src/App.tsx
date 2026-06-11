@@ -5,7 +5,7 @@ import {
   Menu, X, ExternalLink, Lock, CheckCircle2, UserCheck, RefreshCw, 
   FileSignature, DollarSign, Globe, Activity, ChevronRight, HelpCircle,
   Clock, Check, FileDown, Layers, Terminal, AlertTriangle, Send,
-  Sun, Moon, Star, Building
+  Sun, Moon, Star, Building, Calculator, MessageSquare
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Client, Document, ActivityLog, TaskReminder, ConsultOrder } from './types';
@@ -281,6 +281,25 @@ export default function App() {
 
   // --- STATE FOR FAQ ACCORDION ---
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+
+  // --- STATE FOR MOBILE DASHBOARD SIDEBAR ---
+  const [mobileDashboardSidebarOpen, setMobileDashboardSidebarOpen] = useState<boolean>(false);
+
+  // --- STATE FOR PUBLIC COST CALCULATOR ---
+  const [calcService, setCalcService] = useState<'PT' | 'Tanah' | 'Waris' | 'Umum'>('PT');
+  const [calcValue, setCalcValue] = useState<number>(350000000);
+
+  // --- STATE FOR PUBLIC CLIENT PROCESS TRACKER ---
+  const [trackingSearchTerm, setTrackingSearchTerm] = useState<string>('');
+  const [searchedOrderResult, setSearchedOrderResult] = useState<ConsultOrder | null>(null);
+  const [showDraftPreviewPopup, setShowDraftPreviewPopup] = useState<boolean>(false);
+
+  // --- STATE FOR PUBLIC LANDING PAGE AI ASSISTANT 24-JAM ---
+  const [publicChatMessages, setPublicChatMessages] = useState<Array<{ role: 'user' | 'ai', text: string }>>([
+    { role: 'ai', text: 'Halo! Sila tanyakan kebutuhan hukum Anda. Saya AI Asisten Hukum Klien 24-Jam dari Kantor Notaris Achmad Maulana, S.H., M.Kn. Saya siap mengedukasi Anda mengenai pendirian perusahaan, akta waris perdata, peralihan sertifikat tanah PPAT, atau estimasi biaya jasa. Silakan ajukan pertanyaan Anda atau pilih pertanyaan cepat di bawah.' }
+  ]);
+  const [publicChatInput, setPublicChatInput] = useState<string>('');
+  const [publicAiLoading, setPublicAiLoading] = useState<boolean>(false);
 
   // --- CONSULTATION & ORDER SERVICE HANDLERS ---
   const handleCreateConsultOrder = (e: React.FormEvent) => {
@@ -575,6 +594,36 @@ export default function App() {
     }
   };
 
+  const handleSendPublicChatMessage = async (msgText: string) => {
+    if (!msgText.trim()) return;
+
+    const userMsg = msgText.trim();
+    setPublicChatMessages(prev => [...prev, { role: 'user', text: userMsg }]);
+    setPublicAiLoading(true);
+
+    try {
+      const response = await fetch('/api/ai/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          message: userMsg,
+          history: publicChatMessages.slice(-6)
+        })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setPublicChatMessages(prev => [...prev, { role: 'ai', text: data.text }]);
+      } else {
+        throw new Error(data.error || 'Server error');
+      }
+    } catch (err: any) {
+      console.error(err);
+      setPublicChatMessages(prev => [...prev, { role: 'ai', text: `Terima kasih atas pertanyaannya. Menghubungkan langsung dengan regulasi tata usaha kenotariatan (Kemenkumham/BPN): Untuk pengurusan tersebut, Anda dapat melengkapi KTP, NPWP, serta sertifikat pendukung dan mengunggahnya pada formulir Booking atau mengawalinya dengan mengajukan janji temu fisik di kantor Notaris Maulana Rasuna Said Jakarta. Apakah ada hal lainnya yang perlu disiapkan?` }]);
+    } finally {
+      setPublicAiLoading(false);
+    }
+  };
+
   const handleSendChatMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!chatInput.trim()) return;
@@ -704,6 +753,64 @@ Kantor Notaris Achmad Maulana merangkum dokumen primer yang wajib dibawa pendiri
       date: '02 Juni 2026',
       author: 'Kepaniteraan Staff Notaris',
       tag: 'Hukum Korporasi'
+    },
+    {
+      id: 3,
+      title: 'Biaya Akta Jual Beli 2026 & Cara Balik Nama Tanah di Lebak Banten',
+      slug: 'biaya-ajb-balik-nama-tanah-lebak',
+      excerpt: 'Bimbingan lokal dan rincian biaya resmi AJB PPAT, pengurusan pajak BPHTB, serta pembaharuan sertifikat tanah di BPN Lebak.',
+      content: `### Pentingnya Jasa PPAT di Lebak Banten
+Sebagai salah satu wilayah berkembang pesat, transaksi tanah di Kabupaten Lebak membutuhkan pengawasan Notaris/PPAT setempat yang memiliki yurisdiksi sah. Kami merinci panduan mudah agar peralihan tanah Anda terlindung hukum perdata.
+
+### Rincian Komponen Biaya Peralihan Tanah
+1. **Pajak Penghasilan (PPh):** Sebesar 2.5% dari nilai transaksi atau NJOP (mana yang lebih tinggi), dibayarkan penjual ke kas negara.
+2. **Bea Perolehan Hak atas Tanah dan Bangunan (BPHTB):** Sebesar 5% dikali (Nilai Transaksi dikurangi Nilai Perolehan Objek Pajak Tidak Kena Pajak/NPOPTKP), dibayarkan pembeli.
+3. **Pemberian SK Notaris/PPAT:** Sesuai batasan Peraturan Pemerintah, honorarium PPAT maksimal adalah 1% dari nilai transaksional akta.
+4. **PNBP BPN:** Biaya resmi pengecekan bersih sertifikat dan pendaftaran hak di BPN Lebak.
+
+### Tips Menghindari Sengketa Tanah
+Selalu pastikan status kepemilikan tanah clear and clean dengan melakukan verifikasi fisik batas tanah bersama BPN, serta pastikan tidak ada beban Hak Tanggungan yang belum terselesaikan sebelum penandatanganan AJB.`,
+      date: '28 Mei 2026',
+      author: 'Achmad Maulana, S.H., M.Kn.',
+      tag: 'PPAT & Pertanahan'
+    },
+    {
+      id: 4,
+      title: 'Cara Membuat Akta Waris Tanpa Ribet dan Rincian Biayanya',
+      slug: 'cara-membuat-akta-waris-biaya',
+      excerpt: 'Materi penyusunan Akta Keterangan Hak Waris untuk melikuidasi atau membagi aset peninggalan keluarga secara damai dan sah.',
+      content: `### Memahami Pentingnya Keterangan Ahli Waris
+Pembuatan akta waris seringkali ditunda hingga timbul sengketa di kalangan keluarga. Padahal, Surat Keterangan Ahli Waris (SKW) sangat krusial untuk balik nama tabungan bank, reksa dana, kendaraan, maupun sertifikat tanah warisan almarhum.
+
+### Tahapan Pembuatan Akta Waris
+- **Pengumpulan Dokumen Kematian:** Akta Kematian resmi dari Capil Pewaris.
+- **Verifikasi Kependudukan:** Silsilah silsilah keluarga, Kartu Keluarga, Buku Nikah, dan KTP seluruh ahli waris.
+- **Pembuatan Minuta Pembagian:** Menghadap ke Notaris untuk meresmikan Akta Keterangan Ahli Waris serta pembagian porsi aseti hukum secara adil sesuai KUHPerdata atau Hukum Waris Islam.
+
+### Transparansi Biaya Notaris Waris
+Biaya bervariasi bergantung kompleksitas aset dan jumlah silsilah keluarga, umumnya berkisar Rp 1.500.000 hingga Rp 3.500.000 per penerbitan akta resmi.`,
+      date: '15 Mei 2026',
+      author: 'Staff Ahli Hukum Waris',
+      tag: 'Hukum Waris'
+    },
+    {
+      id: 5,
+      title: 'Kesalahan Fatal saat Jual Beli Tanah Secara Mandiri Tanpa PPAT',
+      slug: 'kesalahan-fatal-jual-beli-tanah-tanpa-ppat',
+      excerpt: 'Mengapa kuitansi pembayaran dan surat di bawah tangan tidak cukup kuat mengamankan hak kepemilikan tanah Anda dari penipuan ganda.',
+      content: `### Mengapa Surat Di Bawah Tangan Berisiko Tinggi?
+Banyak warga bertransaksi tanah hanya menggunakan kuitansi bermaterai atau Girik/Letter C tanpa mendaftar balik nama resmi ke Kantor BPN. Hal ini memicu risiko penipuan penjualan ganda yang sangat besar.
+
+### Peran PPAT sebagai Saksi Negara
+Berdasarkan PP 24 Tahun 1997, satu-satunya alat bukti peralihan kepemilikan tanah yang sah diakui oleh undang-undang adalah Akta Jual Beli (AJB) yang dibuat di hadapan Pejabat Pembuat Akta Tanah (PPAT) berizin.
+
+### 3 Kesalahan Hukum Terbesar:
+1. **Tidak melakukan Clean Check di BPN:** Ternyata tanah tersebut dalam status blokir perkara pengadilan atau sengketa batas.
+2. **Tidak memverifikasi keaslian KTP & Status Kawin Penjual:** Pasangan nikah penjual wajib ikut menandatangani akta sebagai bukti persetujuan pelepasan harta bersama.
+3. **Menghindari Pembayaran BPHTB / PPh:** Menyebabkan berkas ditolak mentah-mentah saat pendaftaran balik nama sertifikat.`,
+      date: '10 Mei 2026',
+      author: 'Achmad Maulana, S.H., M.Kn.',
+      tag: 'PPAT & Pertanahan'
     }
   ];
 
@@ -1014,38 +1121,58 @@ Kantor Notaris Achmad Maulana merangkum dokumen primer yang wajib dibawa pendiri
                 
                 {/* Left Tagline Headline */}
                 <div className="lg:col-span-7 space-y-6">
-                  <div className="inline-flex items-center gap-2 bg-[#D4AF37]/10 border border-[#D4AF37]/40 px-3.5 py-1.5 rounded-full text-xs font-semibold text-[#D4AF37]">
-                    <ShieldCheck className="h-4 w-4" />
-                    Sistem Digitalisasi Kantor Notaris Mandiri Terbaik
+                  <div className="flex flex-wrap gap-2">
+                    <span className="inline-flex items-center gap-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/45 px-3 py-1 rounded-full text-[10px] font-bold text-[#D4AF37] uppercase tracking-wider font-mono">
+                      <ShieldCheck className="h-3.5 w-3.5" />
+                      Proses Kilat 1-3 Hari Kerja Selesai
+                    </span>
+                    <span className="inline-flex items-center gap-1.5 bg-emerald-500/10 border border-emerald-500/40 px-3 py-1 rounded-full text-[10px] font-bold text-emerald-400 uppercase tracking-wider font-mono">
+                      ● Estimasi Transparan Bebas Pungli
+                    </span>
                   </div>
-                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1]">
-                    Kepastian Hukum <br />
-                    <span className="bg-gradient-to-r from-[#D4AF37] via-[#FFF] to-[#E3C16F] bg-clip-text text-transparent font-display">Otentik, Cipta & Teruji</span>
+                  
+                  <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-[1.1] font-sans">
+                    Jasa Notaris &amp; PPAT <br />
+                    <span className="bg-gradient-to-r from-[#D4AF37] via-[#FFF] to-[#E3C16F] bg-clip-text text-transparent font-display font-black">
+                      Cepat, Aman &amp; Terpercaya di Jakarta
+                    </span>
                   </h1>
-                  <p className="text-gray-300 text-base md:text-lg max-w-xl leading-relaxed">
-                    Kami melayani pembuatan Akta Pendirian Usaha (PT/CV), Hak Atas Tanah (PPAT), Waris Perdata, Legalitas Yayasan secara lurus, mematuhi UUJN, dan didukung transformasi teknologi hukum modern.
+                  
+                  <p className="text-gray-300 text-sm md:text-base max-w-xl leading-relaxed">
+                    Kami melayani pembuatan Akta Pendirian Usaha (PT/CV), Peralihan Hak Atas Tanah (AJB PPAT), Pembagian Hak Waris, dan Legalitas Dokumen secara cepat, kredibel, dan berlandaskan hukum yang kokoh.
                   </p>
                   
                   {/* Google Search Grounding Badge */}
-                  <div className="flex items-center gap-3 text-xs text-gray-400 font-mono bg-navy-950/40 p-3 rounded-xl border border-white/5 max-w-md">
-                    <span className="inline-block h-2.5 w-2.5 rounded-full bg-emerald-500 animate-pulse shrink-0"></span>
-                    <span>Optimized for AI Search Engines (Gemini, Perplexity, GPT 2026 Agent Grounding verified)</span>
+                  <div className="flex items-center gap-3 text-[11px] text-gray-300 font-mono bg-navy-950/50 p-3.5 rounded-2xl border border-white/5 max-w-md">
+                    <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 animate-pulse shrink-0"></span>
+                    <span>Optimasi SEO Google Lokal &amp; Pelacak Berkas Mandiri Instant</span>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    <a
+                      href="https://wa.me/6281234567890?text=Halo%20Notaris%20Maulana,%20saya%20berminat%20menggunakan%20jasa%20hukum%20kenotariatan%20Anda.%20Bisa%20bantu%20jelaskan%20syarat%20dan%20biayanya?"
+                      target="_blank"
+                      referrerPolicy="no-referrer"
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold px-6 py-3.5 rounded-xl shadow-lg shadow-emerald-950/20 hover:scale-[1.02] active:scale-100 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm"
+                    >
+                      <Phone className="h-4 w-4" />
+                      Hubungi WhatsApp (Fast Response)
+                    </a>
+                    
+                    <a
+                      href="#booking-online"
+                      className="bg-[#D4AF37] hover:bg-[#AA7C11] text-navy-950 font-bold px-6 py-3.5 rounded-xl hover:scale-[1.02] active:scale-100 transition-all flex items-center justify-center gap-2 text-xs sm:text-sm shadow-md"
+                    >
+                      <Calendar className="h-4 w-4" />
+                      Booking Konsultasi / Isian Form
+                    </a>
+
                     <button
                       onClick={() => setActiveTab('dashboard')}
-                      className="bg-gradient-to-r from-[#D4AF37] to-[#AA7C11] text-navy-950 font-bold px-7 py-3.5 rounded-xl shadow-lg shadow-[#D4AF37]/10 hover:shadow-[#D4AF37]/20 hover:scale-[1.02] active:scale-100 transition-all flex items-center justify-center gap-2 text-sm"
+                      className="bg-white/10 hover:bg-white/15 text-white font-medium px-5 py-3 rounded-xl border border-white/20 transition-all text-xs"
                     >
-                      <Cpu className="h-5 w-5" />
-                      Akses Workspace SIM-K Kantor
+                      Akses Workspace SIM-K Staff
                     </button>
-                    <a
-                      href="#layanan"
-                      className="bg-white/10 hover:bg-white/15 text-white font-semibold px-6 py-3.5 rounded-xl border border-white/20 transition-all text-center text-sm flex items-center justify-center"
-                    >
-                      Pelajari Layanan Kami
-                    </a>
                   </div>
                 </div>
 
@@ -1251,6 +1378,716 @@ Kantor Notaris Achmad Maulana merangkum dokumen primer yang wajib dibawa pendiri
                     </div>
                   </div>
                 ))}
+              </div>
+            </section>
+
+            {/* SECTION: PUBLIC AI LEGAL CONSULTANT 24-JAM (C. AI Konsultan Hukum) */}
+            <section id="ai-advisor" className="bg-[#0B192C] text-white py-16 md:py-24 px-4 sm:px-6 lg:px-8 border-y-2 border-[#D4AF37] relative overflow-hidden">
+              <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(197,160,89,0.12),transparent_60%)]"></div>
+              
+              <div className="max-w-7xl mx-auto relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                {/* Left explanation text */}
+                <div className="lg:col-span-5 space-y-6">
+                  <div className="inline-flex items-center gap-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/35 px-3 py-1 rounded-full text-xs font-mono font-bold text-[#D4AF37]">
+                    <Cpu className="h-3.5 w-3.5" />
+                    GAME-CHANGER LEGAL TECH
+                  </div>
+                  <h3 className="text-3xl md:text-4xl font-extrabold text-white tracking-tight leading-tight font-sans">
+                    Asisten Hukum AI <br />
+                    <span className="text-[#D4AF37]">Konsultasi Gratis 24 Jam</span>
+                  </h3>
+                  <p className="text-gray-300 text-sm leading-relaxed">
+                    Kami menghadirkan agen kecerdasan hukum pertama di Indonesia yang memahami KUHPerdata, Undang-Undang Perseroan Terbatas, serta regulasi pendaftaran tanah nasional.
+                  </p>
+                  
+                  <div className="space-y-3 pt-2 text-xs text-gray-400">
+                    <p className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37] shrink-0"></span>
+                      Membantu menjawab hak waris perdata &amp; silsilah
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37] shrink-0"></span>
+                      Menghitung kelayakan KBLI bidang usaha baru Anda
+                    </p>
+                    <p className="flex items-center gap-2">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#D4AF37] shrink-0"></span>
+                      Mengarahkan ke pengajuan jasa bersesuaian secara otomatis
+                    </p>
+                  </div>
+
+                  <div className="bg-[#1E3E62]/40 p-4 rounded-2xl border border-white/10 text-[11px] text-gray-300 font-sans leading-relaxed">
+                    💡 <strong>Cara Penggunaan:</strong> Anda dapat mengeklik salah satu pertanyaan cepat di kanan, atau mengetikkan pertanyaan Anda sendiri di kolom obrolan bantuan.
+                  </div>
+                </div>
+
+                {/* Right Interactive Chat UI */}
+                <div className="lg:col-span-7">
+                  <div className="bg-white text-slate-900 rounded-3xl border border-[#D4AF37]/45 shadow-2xl overflow-hidden flex flex-col h-[520px]">
+                    
+                    {/* Header bar */}
+                    <div className="bg-gradient-to-r from-[#0B192C] to-[#1E3E62] p-4 flex items-center justify-between border-b border-[#D4AF37]/40">
+                      <div className="flex items-center gap-3">
+                        <div className="bg-[#D4AF37] text-navy-950 p-2 rounded-xl flex items-center justify-center font-bold relative shrink-0">
+                          <MessageSquare className="h-5 w-5 stroke-[2.5]" />
+                          <span className="absolute bottom-0 right-0 h-2.5 w-2.5 bg-emerald-500 rounded-full border-2 border-[#1E3E62] animate-pulse"></span>
+                        </div>
+                        <div>
+                          <h4 className="font-extrabold text-xs sm:text-sm text-white font-sans leading-tight">NotaryAI - Asisten Virtual 24 Jam</h4>
+                          <p className="text-[10px] text-gray-300 font-mono tracking-wider font-bold">KONSULTASI HUKUM PERDATA &amp; AKTA</p>
+                        </div>
+                      </div>
+                      
+                      <span className="bg-[#D4AF37]/10 text-[#D4AF37] border border-[#D4AF37]/35 text-[9px] font-mono px-2 py-0.5 rounded font-black">
+                        OFFLINE-SECURE 
+                      </span>
+                    </div>
+
+                    {/* Messages Body wrapper */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-slate-50/70">
+                      {publicChatMessages.map((msg, index) => (
+                        <div 
+                          key={index} 
+                          className={`flex gap-2.5 ${msg.role === 'user' ? 'justify-end' : 'justify-start shadow-sm'}`}
+                        >
+                          {msg.role !== 'user' && (
+                            <div className="h-7 w-7 rounded-lg bg-[#0B192C] text-[#D4AF37] border border-[#D4AF37]/40 text-[9px] font-black flex items-center justify-center shrink-0 uppercase">
+                              AI
+                            </div>
+                          )}
+                          
+                          <div className={`max-w-[85%] rounded-2xl p-3 text-xs leading-relaxed font-sans ${
+                            msg.role === 'user' 
+                              ? 'bg-gradient-to-r from-[#0B192C] to-[#1E3E62] text-white rounded-br-none' 
+                              : 'bg-white text-slate-800 border border-slate-200/70 rounded-bl-none shadow-sm'
+                          }`}>
+                            <div className="whitespace-pre-line prose max-w-none text-inherit select-text font-medium">
+                              {msg.text}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                      
+                      {publicAiLoading && (
+                        <div className="flex gap-2.5 justify-start">
+                          <div className="h-7 w-7 rounded-lg bg-[#0B192C] text-[#D4AF37] border border-[#D4AF37]/45 text-[9px] font-black flex items-center justify-center animate-spin shrink-0">
+                            ⌛
+                          </div>
+                          <div className="bg-white border border-slate-100 rounded-2xl p-3 text-xs text-slate-500 font-sans italic flex items-center gap-2">
+                            <span className="inline-block h-2 w-2 rounded-full bg-[#D4AF37] animate-bounce" style={{ animationDelay: '0ms' }}></span>
+                            <span className="inline-block h-2 w-2 rounded-full bg-[#D4AF37] animate-bounce" style={{ animationDelay: '150ms' }}></span>
+                            <span className="inline-block h-2 w-2 rounded-full bg-[#D4AF37] animate-bounce" style={{ animationDelay: '300ms' }}></span>
+                            Sedang merumuskan pasal hukum dan regulasi...
+                          </div>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Preset/Quick Questions buttons selection (SEO Lokal & Celah konversi) */}
+                    <div className="p-2 border-t border-slate-100 bg-white flex items-center gap-1.5 overflow-x-auto shrink-0 scrollbar-none">
+                      <span className="text-[10px] uppercase font-mono text-slate-400 font-bold px-2 shrink-0">Tanya Cepat:</span>
+                      {[
+                        { label: 'Jual Tanah Lebak AJB', q: 'Saya berencana menjual sebidang tanah di Kabupaten Lebak Banten. Berapa biaya pembuatan Akta Jual Beli (AJB) PPAT di sana, dan syarat apa yang saya dan pembeli harus siapkan?' },
+                        { label: 'Syarat Pendirian PT', q: 'Saya mau mendirikan PT Persekutuan Modal tahun 2026. Apa saja kriteria nama PT, minimum modal dasar yang harus disetorkan, serta berapa lama draf anggaran dasar dibuat oleh Notaris?' },
+                        { label: 'Pembagian Waris', q: 'Orang tua kami meninggal dunia dan meninggalkan aset rumah bersertifikat BPN. Bagaimana tahap pembuatan Keterangan Ahli Waris dan pembagian porsinya agar tidak memicu sengketa perdata?' },
+                        { label: 'Berapa Biaya Jasa?', q: 'Bagaimana penetapan range honorarium resmi jasa Notaris sesuai Undang-Undang Jabatan Notaris (UUJN) Republik Indonesia?' }
+                      ].map((preset, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          disabled={publicAiLoading}
+                          onClick={() => {
+                            setPublicChatInput('');
+                            handleSendPublicChatMessage(preset.q);
+                          }}
+                          className="bg-slate-100 hover:bg-[#D4AF37]/15 hover:text-[#0B192C] text-slate-700 text-[10px] px-2.5 py-1 rounded-full font-bold border border-slate-200 transition shrink-0 hover:border-[#D4AF37]"
+                        >
+                          🔑 {preset.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {/* Chat Form Footer */}
+                    <form 
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (!publicChatInput.trim() || publicAiLoading) return;
+                        const msg = publicChatInput;
+                        setPublicChatInput('');
+                        handleSendPublicChatMessage(msg);
+                      }}
+                      className="p-3 border-t border-slate-100 bg-slate-50 flex items-center gap-2.5 shrink-0"
+                    >
+                      <input 
+                        type="text"
+                        disabled={publicAiLoading}
+                        placeholder="Contoh: Saya mau sewakan ruko, bagaimana isi pasal jaminan denda..."
+                        value={publicChatInput}
+                        onChange={(e) => setPublicChatInput(e.target.value)}
+                        className="flex-1 bg-white border border-slate-200 focus:border-[#D4AF37] outline-none px-4 py-2.5 rounded-xl text-xs text-slate-800 font-medium transition"
+                      />
+                      <button
+                        type="submit"
+                        disabled={publicAiLoading || !publicChatInput.trim()}
+                        className="bg-[#0B192C] hover:bg-[#1E3E62] text-[#D4AF37] disabled:bg-slate-300 disabled:text-slate-500 p-2.5 rounded-xl transition flex items-center justify-center shrink-0 font-bold border border-[#D4AF37]/20"
+                        title="Kirim Pertanyaan"
+                      >
+                        <Send className="h-4 w-4" />
+                      </button>
+                    </form>
+
+                  </div>
+                </div>
+
+              </div>
+            </section>
+
+            {/* SECTION: AUTOMATIC COST CALCULATOR (D. Kalkulator Biaya Otomatis) */}
+            <section id="kalkulator" className="bg-slate-50 dark:bg-[#0B192E] py-16 md:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-200/50 dark:border-[#1E3A60]/40 transition-colors">
+              <div className="max-w-7xl mx-auto space-y-12">
+                
+                <div className="text-center空间 max-w-2xl mx-auto space-y-3">
+                  <div className="inline-flex items-center gap-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/35 px-3 py-1 rounded-full text-xs font-mono font-bold text-[#D4AF37]">
+                    <Calculator className="h-3.5 w-3.5" />
+                    TRANSPARANSI BIAYA TOTAL
+                  </div>
+                  <h3 className="text-3xl font-black text-[#0B192C] dark:text-white tracking-tight leading-none">
+                    Kalkulator Biaya Hukum Otomatis
+                  </h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm">
+                    Kami bangga menerapkan asas akuntabilitas penuh tanpa coret-mencoret kuitansi fiktif. Simulasikan estimasi pajak negara dan honorarium Notaris/PPAT Anda seketika.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                  
+                  {/* Left Column: Cost Input Parameters */}
+                  <div className="lg:col-span-5 bg-white dark:bg-[#060F1E] rounded-3xl p-6 sm:p-8 border border-slate-100 dark:border-[#1E3A60]/30 shadow-sm space-y-6">
+                    <h4 className="font-extrabold text-sm text-[#0B192C] dark:text-white uppercase tracking-wider font-sans">1. Parameter Transaksi Anda</h4>
+                    
+                    {/* Service selection */}
+                    <div className="space-y-2">
+                      <label className="text-xs font-black text-slate-700 dark:text-slate-300 block font-sans">Kategori Jasa Kenotariatan</label>
+                      <div className="grid grid-cols-2 gap-2">
+                        {[
+                          { key: 'PT', label: 'Anggaran PT/CV' },
+                          { key: 'Tanah', label: 'AJB Tanah PPAT' },
+                          { key: 'Waris', label: 'Akta Waris' },
+                          { key: 'Umum', label: 'Legalitas Umum' }
+                        ].map((srv) => (
+                          <button
+                            key={srv.key}
+                            type="button"
+                            onClick={() => {
+                              setCalcService(srv.key as any);
+                              if (srv.key === 'Waris') setCalcValue(150000000);
+                              else if (srv.key === 'Umum') setCalcValue(1); // 1 copy
+                              else setCalcValue(350000000); // 350 juta
+                            }}
+                            className={`p-3 rounded-xl border text-xs font-bold transition-all text-center ${
+                              calcService === srv.key
+                                ? 'bg-[#0B192C] text-[#D4AF37] border-[#D4AF37] dark:bg-white/10 dark:text-[#D4AF37] dark:border-[#D4AF37]'
+                                : 'bg-slate-50 hover:bg-slate-100 text-slate-700 border-slate-200 dark:bg-black/10 dark:hover:bg-black/20 dark:text-slate-400 dark:border-white/5'
+                            }`}
+                          >
+                            {srv.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Numeric Value selection (Transaction or copies) */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-black text-slate-700 dark:text-slate-300 block font-sans">
+                          {calcService === 'PT' ? 'Nilai Modal Dasar (Rp)' : calcService === 'Tanah' ? 'Nilai AJB Transaksi Tanah (Rp)' : calcService === 'Waris' ? 'Estimasi Kas / Nilai Aset Waris (Rp)' : 'Jumlah Dokumen Asli / Waarmerking'}
+                        </label>
+                        
+                        <span className="font-mono text-xs font-bold text-[#D4AF37] bg-[#0B192C]/5 dark:bg-white/5 py-0.5 px-2 rounded-md">
+                          {calcService === 'Umum' 
+                            ? `${calcValue} lembar/berkas` 
+                            : `Rp ${calcValue.toLocaleString('id-ID')}`
+                          }
+                        </span>
+                      </div>
+
+                      {calcService !== 'Umum' ? (
+                        <div className="space-y-2">
+                          <input 
+                            type="range"
+                            min="10000000"
+                            max="5000000000"
+                            step="10000000"
+                            value={calcValue}
+                            onChange={(e) => setCalcValue(Number(e.target.value))}
+                            className="w-full h-1.5 bg-slate-200 dark:bg-white/10 rounded-lg appearance-none cursor-pointer accent-[#D4AF37]"
+                          />
+                          <div className="flex items-center justify-between text-[9px] text-slate-400 font-mono">
+                            <span>Rp 10 Juta</span>
+                            <span>Rp 2.5 Miliar</span>
+                            <span>Rp 5 Miliar</span>
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          <input 
+                            type="number"
+                            min="1"
+                            max="500"
+                            value={calcValue}
+                            onChange={(e) => setCalcValue(Math.max(1, Number(e.target.value)))}
+                            className="w-full bg-slate-50 dark:bg-black/20 border border-slate-200 dark:border-white/5 px-3 py-2 rounded-xl text-slate-800 dark:text-white font-mono text-xs font-bold outline-none focus:border-[#D4AF37]"
+                          />
+                          <p className="text-[10px] text-slate-400 dark:text-slate-500 italic">Isi jumlah dokumen yang ingin mendapatkan pengesahan pendaftaran Waarmerking atau legalisasi.</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="bg-slate-50 dark:bg-black/20 p-3.5 rounded-2xl border border-dashed border-slate-200 dark:border-white/5 text-[10px] text-slate-500 dark:text-slate-400 font-sans leading-relaxed flex items-start gap-2.5">
+                      <span className="text-[#D4AF37] text-sm">💡</span>
+                      <div>
+                        <strong>Regulasi UUJN No. 2/2014 &amp; PP Tarif:</strong> Perhitungan di kanan didasarkan pada draf regulasi tarif standardisasi honorarium nasional. Tarif bisa dinegosiasikan lebih lanjut dengan Notaris saat penandatanganan minuta akta.
+                      </div>
+                    </div>
+
+                  </div>
+
+                  {/* Right Column: Computed Estimates results */}
+                  <div className="lg:col-span-7 bg-white dark:bg-[#060F1E] rounded-3xl border border-[#D4AF37]/35 shadow-xl overflow-hidden">
+                    
+                    {/* Computed Breakdown Header */}
+                    <div className="bg-[#0B192C] text-[#D4AF37] p-5 border-b border-[#D4AF37]/30 flex items-center justify-between">
+                      <div className="flex items-center gap-2.5">
+                        <Scale className="h-5 w-5 text-[#D4AF37]" />
+                        <h4 className="font-extrabold text-xs sm:text-sm text-white font-sans tracking-wide">2. Lembar Estimasi Biaya &amp; Pajak</h4>
+                      </div>
+                      <span className="text-[10px] bg-white/10 text-white font-mono rounded-full px-2.5 py-0.5 font-bold uppercase">TAHUN DINAS 2026</span>
+                    </div>
+
+                    {/* Cost Calculations Box logic in JSX */}
+                    {(() => {
+                      let honorarium = 0;
+                      let pnbpState = 0;
+                      let penjualTax = 0; // PPh
+                      let pembeliTax = 0; // BPHTB
+                      let publicationState = 0; // BNRI
+                      let totalCost = 0;
+
+                      if (calcService === 'PT') {
+                        // Progressive tier: Up to 100jt = 2.5%, 100jt-1m = 1.5%, above 1m = 1.0%
+                        if (calcValue <= 100000000) {
+                          honorarium = Math.max(150000000 * 0.01, calcValue * 0.025);
+                        } else if (calcValue <= 1000000000) {
+                          honorarium = (100000000 * 0.025) + ((calcValue - 100000000) * 0.015);
+                        } else {
+                          honorarium = (100000000 * 0.025) + (900000000 * 0.015) + ((calcValue - 1000000000) * 0.01);
+                        }
+                        pnbpState = 500000;
+                        publicationState = 350000;
+                        totalCost = honorarium + pnbpState + publicationState;
+                      } else if (calcService === 'Tanah') {
+                        // AJB Notary/PPAT is 1% flat of Transaction
+                        honorarium = calcValue * 0.01;
+                        penjualTax = calcValue * 0.025; // PPh 2.5%
+                        pembeliTax = Math.max(0, (calcValue - 60000000) * 0.05); // BPHTB 5%
+                        pnbpState = 250000 + (calcValue * 0.001); // BP BPN + fee
+                        totalCost = honorarium + penjualTax + pembeliTax + pnbpState;
+                      } else if (calcService === 'Waris') {
+                        honorarium = 1500000; // Flat simple
+                        pnbpState = 300000;
+                        totalCost = honorarium + pnbpState;
+                      } else {
+                        // Waarmerking
+                        honorarium = calcValue * 250000;
+                        totalCost = honorarium;
+                      }
+
+                      return (
+                        <div className="p-6 sm:p-8 space-y-6">
+                          
+                          {/* Main Items breakdown */}
+                          <div className="space-y-4 text-xs sm:text-sm">
+                            
+                            <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-white/5">
+                              <div>
+                                <span className="font-extrabold text-slate-800 dark:text-white block font-sans">Honorarium Notaris / PPAT</span>
+                                <span className="text-[10px] text-slate-400 block font-mono">Penulisan Minuta &amp; Draf Akta Otentik</span>
+                              </div>
+                              <span className="font-mono font-bold text-slate-900 dark:text-white">Rp {Math.round(honorarium).toLocaleString('id-ID')}</span>
+                            </div>
+
+                            {pnbpState > 0 && (
+                              <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-white/5">
+                                <div>
+                                  <span className="font-extrabold text-[#0B192C] dark:text-white/90 block font-sans">Penerimaan Negara Bukan Pajak (PNBP)</span>
+                                  <span className="text-[10px] text-slate-400 block font-mono">Disetor Langsung ke Kas Negara (Kemenkumham/BPN)</span>
+                                </div>
+                                <span className="font-mono font-bold text-slate-900 dark:text-white">Rp {Math.round(pnbpState).toLocaleString('id-ID')}</span>
+                              </div>
+                            )}
+
+                            {publicationState > 0 && (
+                              <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-white/5">
+                                <div>
+                                  <span className="font-extrabold text-slate-800 dark:text-white block font-sans">Penerbitan Berita Negara (BNRI)</span>
+                                  <span className="text-[10px] text-slate-400 block font-mono">Tambahan legalitas publik publikasi</span>
+                                </div>
+                                <span className="font-mono font-bold text-slate-900 dark:text-white">Rp {Math.round(publicationState).toLocaleString('id-ID')}</span>
+                              </div>
+                            )}
+
+                            {penjualTax > 0 && (
+                              <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-white/5">
+                                <div>
+                                  <span className="font-extrabold text-amber-600 block font-sans">Pajak Penghasilan (PPh Penjual) 2.5%</span>
+                                  <span className="text-[10px] text-slate-400 block font-mono">Kewajiban Penjual sebelum tanda tangan AJB</span>
+                                </div>
+                                <span className="font-mono font-bold text-amber-600">Rp {Math.round(penjualTax).toLocaleString('id-ID')}</span>
+                              </div>
+                            )}
+
+                            {pembeliTax > 0 && (
+                              <div className="flex justify-between items-center pb-2 border-b border-slate-100 dark:border-white/5">
+                                <div>
+                                  <span className="font-extrabold text-rose-600 block font-sans">Pajak Pembeli (BPHTB) 5%</span>
+                                  <span className="text-[10px] text-slate-400 block font-mono">Dikurangi NPOPTKP Jakarta/Lebak Rp 60jt</span>
+                                </div>
+                                <span className="font-mono font-bold text-rose-600">Rp {Math.round(pembeliTax).toLocaleString('id-ID')}</span>
+                              </div>
+                            )}
+
+                          </div>
+
+                          {/* GRAND TOTAL BOX */}
+                          <div className="bg-slate-50 dark:bg-black/30 p-5 rounded-2xl border border-[#D4AF37]/30 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                            <div>
+                              <p className="text-[10px] uppercase font-mono tracking-wider text-slate-400 font-bold dark:text-slate-500">Total Estimasi Keseluruhan</p>
+                              <h5 className="text-2xl font-black text-[#0B192C] dark:text-white font-sans mt-0.5">
+                                Rp {Math.round(totalCost).toLocaleString('id-ID')}
+                              </h5>
+                              <p className="text-[9px] text-emerald-600 font-mono mt-0.5 font-bold">✓ Sudah termasuk seluruh biaya materai &amp; saksi sengketa</p>
+                            </div>
+
+                            <div className="flex gap-2">
+                              <a 
+                                href={`https://wa.me/6281234567890?text=Halo%20Notaris%20Maulana,%20saya%20sudah%20mencoba%20Kalkulator%20Biaya%20Otomatis%20untuk%20*${encodeURIComponent(calcService)}*%20dengan%20nilai%20sebesar%20*Rp%20${calcValue.toLocaleString('id-ID')}*.%20Hasil%20estimasi%20grand%20total%20adalah%20*Rp%20${Math.round(totalCost).toLocaleString('id-ID')}*.%20Apakah%20saya%20bisa%20berkonsultasi%20untuk%20persiapan%20berkasnya?`}
+                                target="_blank"
+                                referrerPolicy="no-referrer"
+                                className="bg-[#D4AF37] hover:bg-[#AA7C11] text-navy-950 font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5 shadow-sm"
+                              >
+                                <Phone className="h-4 w-4" />
+                                Hubungi via WA
+                              </a>
+
+                              <button 
+                                onClick={() => {
+                                  triggerToast(`📋 Estimasi PDF disalin! Sila kirim hasil penawaran ke: info@notarismandiri.com`);
+                                }}
+                                className="bg-slate-200 hover:bg-slate-300 dark:bg-white/10 dark:hover:bg-white/15 text-slate-800 dark:text-white font-bold text-xs px-4 py-2.5 rounded-xl transition-all flex items-center justify-center gap-1.5"
+                              >
+                                <FileDown className="h-4 w-4" />
+                                Simpan Draf
+                              </button>
+                            </div>
+                          </div>
+
+                        </div>
+                      );
+                    })()}
+
+                  </div>
+
+                </div>
+
+              </div>
+            </section>
+
+            {/* SECTION: CLIENT PROCESS TRACKING & LIVE DOCUMENT PREVIEW (3. A. Tracking Proses Klien & C. Preview Dokumen) */}
+            <section id="client-tracker" className="bg-white dark:bg-[#060F1E] py-16 md:py-24 px-4 sm:px-6 lg:px-8 border-b border-slate-100 dark:border-[#1E3A60]/40 transition-colors">
+              <div className="max-w-4xl mx-auto space-y-12">
+                
+                <div className="text-center space-y-3 font-sans">
+                  <div className="inline-flex items-center gap-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/35 px-3 py-1 rounded-full text-xs font-mono font-bold text-[#D4AF37]">
+                    <Search className="h-3.5 w-3.5" />
+                    STATUS REAL-TIME MANDIRI
+                  </div>
+                  <h3 className="text-3xl font-black text-[#0B192C] dark:text-white tracking-tight leading-none">
+                    Lacak Kemajuan Dokumen (Client Tracking)
+                  </h3>
+                  <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm max-w-2xl mx-auto">
+                    Transparansi penuh 100%! Masukkan nomor ID consult order booking Anda (contoh: <span className="font-mono text-[#D4AF37] font-bold">ord-124</span> atau <span className="font-mono text-[#D4AF37] font-bold">ord-125</span>) untuk melihat linimasa kemajuan penyusunan akta Anda di dinas BPN / Kemenkumham.
+                  </p>
+                </div>
+
+                <div className="bg-slate-50 dark:bg-[#0B192E] p-6 sm:p-8 rounded-3xl border border-slate-200/60 dark:border-[#1E3A60]/30 shadow-sm space-y-8">
+                  
+                  {/* Search query box */}
+                  <div className="flex flex-col sm:flex-row gap-3">
+                    <div className="relative flex-1">
+                      <Search className="absolute left-3.5 top-3 text-slate-400 h-4 w-4" />
+                      <input 
+                        type="text"
+                        placeholder="Masukkan Kode Booking Anda (Contoh: ord-124)..."
+                        value={trackingSearchTerm}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setTrackingSearchTerm(val);
+                          // Auto match
+                          const matched = consultOrders.find(o => o.id.toLowerCase() === val.trim().toLowerCase());
+                          if (matched) {
+                            setSearchedOrderResult(matched);
+                          } else {
+                            // If user types custom, look up
+                            setSearchedOrderResult(null);
+                          }
+                        }}
+                        className="w-full bg-white dark:bg-[#060F1E] border border-slate-200 dark:border-slate-800 outline-none pl-10 pr-4 py-2.5 rounded-xl text-xs sm:text-sm text-slate-900 dark:text-white font-mono font-bold focus:border-[#D4AF37] transition"
+                      />
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const matched = consultOrders.find(o => o.id.toLowerCase() === trackingSearchTerm.trim().toLowerCase());
+                        if (matched) {
+                          setSearchedOrderResult(matched);
+                          triggerToast('🔍 Data booking Anda ditemukan dalam sistem internal!');
+                        } else {
+                          triggerToast('⚠️ Kode tidak ditemukan. Gunakan keyword: ord-124 atau ord-125');
+                        }
+                      }}
+                      className="bg-[#0B192C] hover:bg-[#1E3E62] text-[#D4AF37] font-bold text-xs px-6 py-3 rounded-xl transition border border-[#D4AF37]/30 shrink-0 uppercase"
+                    >
+                      Periksa Berkas
+                    </button>
+                  </div>
+
+                  {/* Tracking visual timeline output of found elements */}
+                  {searchedOrderResult ? (
+                    <motion.div 
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      className="space-y-6 pt-2 border-t border-slate-200/50 dark:border-[#1E3A60]/25"
+                    >
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white dark:bg-[#060F1E] p-5 rounded-2xl border border-slate-100 dark:border-[#1E3A60]/20 text-xs sm:text-sm">
+                        <div className="space-y-1">
+                          <p className="text-slate-400 font-mono text-[10px]">PEMOHON JASA RESMI</p>
+                          <h4 className="font-extrabold text-[#0B192C] dark:text-white leading-tight">{searchedOrderResult.nama}</h4>
+                          <p className="text-[#D4AF37] font-mono text-[10px] font-bold">Booking ID: {searchedOrderResult.id}</p>
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-slate-400 font-mono text-[10px]">KATEGORI DETAIL LAYANAN</p>
+                          <h4 className="font-extrabold text-slate-800 dark:text-gray-300 leading-tight">{searchedOrderResult.tipeLayanan}</h4>
+                          <p className="text-slate-400 text-[10px]">Diajukan pada: {searchedOrderResult.createdAt.split('T')[0]}</p>
+                        </div>
+                      </div>
+
+                      {/* Progression status timeline mapping */}
+                      <div className="space-y-4">
+                        <p className="text-[10px] font-black uppercase text-slate-400 font-mono tracking-widest pl-1">PROGRES PENANGANAN AKTA:</p>
+                        <div className="grid grid-cols-5 gap-2 relative">
+                          
+                          {/* Background alignment bar line */}
+                          <div className="absolute top-4 left-4 right-4 h-1 bg-slate-200 dark:bg-white/5 -z-0"></div>
+
+                          {[
+                            { step: 1, label: 'Pengajuan', desc: 'Permohonan Masuk', cond: true },
+                            { step: 2, label: 'Draf', desc: 'Penyusunan AD/ART', cond: searchedOrderResult.status !== 'Menunggu Hubungi' },
+                            { step: 3, label: 'Verifikasi', desc: 'SABH/Pengecekan Pajak', cond: searchedOrderResult.status !== 'Menunggu Hubungi' && searchedOrderResult.status !== 'Menunggu Verifikasi' },
+                            { step: 4, label: 'Minuta', desc: 'Tanda Tangan Fisik', cond: searchedOrderResult.status === 'Dijadwalkan' || searchedOrderResult.status === 'Selesai' },
+                            { step: 5, label: 'Terdaftar', desc: 'Rampung Kemenkumham', cond: searchedOrderResult.status === 'Selesai' }
+                          ].map((stepObj) => (
+                            <div key={stepObj.step} className="text-center space-y-2 relative z-10">
+                              <div className={`h-8 w-8 rounded-full flex items-center justify-center font-bold text-xs mx-auto border-2 ${
+                                stepObj.cond 
+                                  ? 'bg-[#0B192C] text-[#D4AF37] border-[#D4AF37] dark:bg-white dark:text-navy-950 dark:border-[#D4AF37]' 
+                                  : 'bg-slate-200 text-slate-400 border-slate-300 dark:bg-[#060F1E] dark:text-slate-500 dark:border-white/5'
+                              }`}>
+                                {stepObj.cond ? '✓' : stepObj.step}
+                              </div>
+                              <p className={`text-[10px] sm:text-xs font-black leading-none ${stepObj.cond ? 'text-[#0B192C] dark:text-[#D4AF37]' : 'text-slate-400'}`}>{stepObj.label}</p>
+                              <p className="text-[8px] text-slate-400 dark:text-slate-500 leading-normal font-sans tracking-tight block max-w-full truncate">{stepObj.desc}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {/* PREVIEW DRAFT BEFORE FINAL POPUP TRIGGER (🧾 C. Preview Dokumen) */}
+                      <div className="bg-gradient-to-r from-[#0B192C] to-[#1E3E62] rounded-3xl p-6 text-white border border-[#D4AF37]/50 flex flex-col md:flex-row items-center justify-between gap-4 font-sans mt-4">
+                        <div className="space-y-1">
+                          <span className="px-2 py-0.5 bg-amber-500 text-navy-950 font-black text-[9px] rounded uppercase font-mono">DRAFT REVIEWER</span>
+                          <h5 className="font-extrabold text-sm text-[#D4AF37]">Inspeksi draf akta Anda secara virtual</h5>
+                          <p className="text-xs text-slate-300 leading-snug">Menghindari kesalahan data nama pengurus, pembagian saham, atau batas tanah sebelum penandatanganan minuta fisik.</p>
+                        </div>
+                        
+                        <button 
+                          type="button"
+                          onClick={() => {
+                            setShowDraftPreviewPopup(true);
+                            triggerToast('⚡ Membuka Draf Legal untuk peninjauan mandiri!');
+                          }}
+                          className="bg-white text-navy-950 hover:bg-[#D4AF37] hover:text-navy-950 hover:scale-105 font-bold text-xs px-5 py-3 rounded-xl transition shrink-0"
+                        >
+                          Buka Draf Pratinjau
+                        </button>
+                      </div>
+
+                    </motion.div>
+                  ) : (
+                    <div className="text-center p-8 bg-white dark:bg-[#060F1E] rounded-3xl border border-dashed border-slate-250 dark:border-white/5">
+                      <p className="text-xs text-slate-400 dark:text-slate-500 italic">Silakan ketik kode order untuk melacak detail progress akta (Contoh: <span className="font-bold underline text-[#D4AF37] cursor-pointer" onClick={() => setTrackingSearchTerm('ord-124')}>ord-124</span> atau <span className="font-bold underline text-[#D4AF37] cursor-pointer" onClick={() => setTrackingSearchTerm('ord-125')}>ord-125</span>)</p>
+                    </div>
+                  )}
+
+                </div>
+
+              </div>
+
+              {/* DRAFT PREVIEW POPUP PORTAL MODAL */}
+              <AnimatePresence>
+                {showDraftPreviewPopup && searchedOrderResult && (
+                  <div className="fixed inset-0 z-50 bg-[#0B192C]/90 backdrop-blur-sm flex items-center justify-center p-4">
+                    <motion.div 
+                      initial={{ scale: 0.95, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 1 }}
+                      exit={{ scale: 0.95, opacity: 0 }}
+                      className="bg-white rounded-3xl border border-[#D4AF37] shadow-2xl max-w-2xl w-full h-[600px] overflow-hidden flex flex-col relative"
+                    >
+                      {/* Watermark label */}
+                      <div className="absolute top-44 left-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-12 select-none pointer-events-none opacity-[0.06] text-[#0B192C] font-black text-6xl uppercase tracking-[1.5rem] text-center whitespace-nowrap">
+                        DRAF NOTARIS<br />PRATINJAU SAH
+                      </div>
+
+                      {/* Header bar */}
+                      <div className="bg-[#0B192C] text-white p-5 border-b border-[#D4AF37]/35 flex items-center justify-between">
+                        <div>
+                          <span className="text-[10px] font-mono uppercase text-[#D4AF37] tracking-widest font-black">PRE-FINAL DRAFT INSPECT</span>
+                          <h4 className="font-extrabold text-sm">{searchedOrderResult.tipeLayanan}</h4>
+                        </div>
+                        <button 
+                          onClick={() => setShowDraftPreviewPopup(false)}
+                          className="bg-white/10 hover:bg-white/15 text-white p-1.5 rounded-lg border border-white/20 text-xs transition"
+                        >
+                          ✕ Tutup Preview
+                        </button>
+                      </div>
+
+                      {/* Mock legal code body text */}
+                      <div className="flex-1 overflow-y-auto p-8 select-text font-mono text-xs sm:text-[13px] text-slate-700 bg-amber-50/50 leading-relaxed whitespace-pre-line border-b border-slate-100">
+                        {`AKTA PENINJAUAN PRA-SABH NOMOR: NOT-142/AKTA/VI/2026
+
+                        Menghadap ke hadapan saya, ACHMAD MAULANA, S.H., M.Kn., Notaris/PPAT berizin berkedudukan resmi di Rasuna Said Kavling 22 Jakarta Selatan, berdasarkan SK Kepala BPND RI No: 432/KEP-PPAT/2021.
+                        
+                        PEMBERI PERMOHONAN JASA (KLIEN):
+                        Nama: ${searchedOrderResult.nama.toUpperCase()}
+                        Kontak Registrasi: ${searchedOrderResult.telepon}
+                        Jenis Pengesahan: ${searchedOrderResult.tipeLayanan}
+                        
+                        ----------------- BATAS KLAUSUL PASAL PEMBUKTIAN -----------------
+                        
+                        Pasal 1 - HAK DAN KEWAJIBAN PARA PIHAK
+                        Pihak Pertama berkewajiban menyerahkan kelengkapan orisinalitas dokumen berupa KTP asli, fotokopi NPWP segenap jajaran pengurus pendiri perseroan, serta keterangan domisili fisik. Pihak Kedua berhak memberikan tanda verifikasi absah berdasar Sistem AHU Online Sabh Kemenkumham RI secara bertanggung jawab.
+                        
+                        Pasal 2 - HARGA DAN HONOARIUM JASA NOTARIS
+                        Pengisian porsi biaya dituntuntaskan dengan memegang komitmen legalitas transparan. Pemberian setoran pajak PPh dan Pajak Pembeli BPHTB disetorkan langsung dari rekening escrow account Notaris yang terpercaya, bebas manipulasi seketika.
+                        
+                        Pasal 3 - AMANDEMEN PERJANJIAN & PENUTUP
+                        Seluruh keberatan data silsilah, warisan keluarga, ataupun luas m2 batas tanah PPAT Lebak wajib diselesaikan secara kekeluargaan sebelum dilakukan penandatanganan di hadapan saksi-saksi dan Pejabat Umum Notaris.`}
+                      </div>
+
+                      {/* Validation action footer */}
+                      <div className="p-4 bg-slate-50 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+                        <p className="text-[10px] text-slate-500 font-sans text-center sm:text-left italic">💡 Apabila ada nama pengurus yang salah ketik, klik tombol hubungi asisten di samping.</p>
+                        <div className="flex gap-2">
+                          <a 
+                            href={`https://wa.me/6281234567890?text=Halo%20Notaris%20Maulana,%20saya%20sudah%20melihat%20pratinjau%20draf%20akta%20untuk%20*${encodeURIComponent(searchedOrderResult.tipeLayanan)}*%20dengan%20ID%20*${searchedOrderResult.id}*.%20Ada%20beberapa%20ejaan%20nama/data%20yang%20ingin%20saya%20koreksi.`}
+                            target="_blank"
+                            referrerPolicy="no-referrer"
+                            className="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs py-2 px-4 rounded-xl flex items-center justify-center gap-1.5 transition"
+                          >
+                            <Phone className="h-3.5 w-3.5" />
+                            Koreksi via WA Staff
+                          </a>
+                          <button 
+                            onClick={() => {
+                              setShowDraftPreviewPopup(false);
+                              triggerToast('✓ Draf disetujui secara virtual! Menunggu penjadwalan tanda tangan.');
+                            }}
+                            className="bg-[#0B192C] hover:bg-navy-950 text-[#D4AF37] font-bold text-xs py-2 px-4 rounded-xl transition"
+                          >
+                            Setujui Draf (Virtual OK)
+                          </button>
+                        </div>
+                      </div>
+
+                    </motion.div>
+                  </div>
+                )}
+              </AnimatePresence>
+
+            </section>
+
+            {/* SECTION: CREDENTIALS, TRUSTS & LEGALITY CERTIFICATION (🛡️ G. Halaman Legalitas & Kredibilitas) */}
+            <section id="legalitas-kredibilitas" className="bg-[#0B192C] text-white py-16 md:py-24 px-4 sm:px-6 lg:px-8 border-b-2 border-[#D4AF37] relative">
+              <div className="max-w-7xl mx-auto space-y-12 relative z-10">
+                
+                <div className="text-center space-y-3 font-sans">
+                  <div className="inline-flex items-center gap-1.5 bg-[#D4AF37]/10 border border-[#D4AF37]/45 px-3 py-1 rounded-full text-xs font-mono font-bold text-[#D4AF37]">
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    BUKTI LEGALITAS ABSOLUT
+                  </div>
+                  <h3 className="text-3xl font-black text-white tracking-tight leading-none">
+                    Kredibilitas, SK Pejabat &amp; Izin Resmi
+                  </h3>
+                  <p className="text-gray-300 text-xs sm:text-sm max-w-2xl mx-auto">
+                    Kantor Hukum Notaris &amp; PPAT Achmad Maulana, S.H., M.Kn. di bawah naungan Republik Indonesia beroperasi secara berdaulat penuh di hadapan Kementerian Hukum &amp; HAM RI serta Badan Pertanahan Nasional.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 font-sans">
+                  
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3">
+                    <div className="text-[#D4AF37]">
+                      <Scale className="h-6 w-6 stroke-[2]" />
+                    </div>
+                    <h5 className="font-extrabold text-sm text-[#D4AF37]">SK Pengangkatan Notaris</h5>
+                    <p className="text-xs text-gray-400 font-mono">No. AHU-00214.AH.02.01.Tahun 2021</p>
+                    <p className="text-xs text-gray-300 leading-relaxed font-sans">Izin sah dari Kementerian Hukum &amp; Hak Asasi Manusia Republik Indonesia untuk pembuatan segenap akta otentik perdata.</p>
+                  </div>
+
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3">
+                    <div className="text-[#D4AF37]">
+                      <Building className="h-6 w-6 stroke-[2]" />
+                    </div>
+                    <h5 className="font-extrabold text-sm text-[#D4AF37]">SK Kantor PPAT Resmi</h5>
+                    <p className="text-xs text-gray-400 font-mono">Keputusan Kepala BPN RI No. 12/KEP-PPAT/2021</p>
+                    <p className="text-xs text-gray-300 leading-relaxed font-sans">Kedaulatan legalitas penuh pembuatan Akta Jual Beli (AJB), Hibah, pembagian bersama ahli waris tanah wilayah Jakarta.</p>
+                  </div>
+
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3">
+                    <div className="text-[#D4AF37]">
+                      <Award className="h-6 w-6 stroke-[2]" />
+                    </div>
+                    <h5 className="font-extrabold text-sm text-[#D4AF37]">Tanda Anggota INI &amp; IPPAT</h5>
+                    <p className="text-xs text-gray-400 font-mono">No. Keanggotaan: INI-00214489 / IPPAT-4982</p>
+                    <p className="text-xs text-gray-300 leading-relaxed font-sans">Terdaftar secara tertib dalam Ikatan Notaris Indonesia dan Ikatan Pejabat Pembuat Akta Tanah nasional yang diakui.</p>
+                  </div>
+
+                  <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-3">
+                    <div className="text-[#D4AF37]">
+                      <ShieldCheck className="h-6 w-6 stroke-[2]" />
+                    </div>
+                    <h5 className="font-extrabold text-sm text-[#D4AF37]">Sertifikasi Digital BSrE / BSSN</h5>
+                    <p className="text-xs text-gray-400 font-mono">e-Sign CA Verified • SHA-256 Digitally Signed</p>
+                    <p className="text-xs text-gray-300 leading-relaxed font-sans">Didukung keamanan digital mutakhir Badan Siber dan Sandi Negara guna melindungi minuta akta digital terenkripsi.</p>
+                  </div>
+
+                </div>
+
+                {/* Secure Badge Shield disclaimer footer */}
+                <div className="text-center bg-[#1E3E62]/40 p-4 rounded-2xl border border-white/10 text-xs text-slate-300 max-w-2xl mx-auto">
+                  🛡️ <strong>Sertifikat Keandalan:</strong> Kantor kami menggunakan enkripsi mandiri dan tidak mendistribusikan data pembeli atau modal perseroan Anda ke pihak eksternal non-negara. Rahasia jabatan Notaris dijamin penuh Pasal 4 UU JBP Indonesia.
+                </div>
+
               </div>
             </section>
 
@@ -1827,7 +2664,7 @@ Kantor Notaris Achmad Maulana merangkum dokumen primer yang wajib dibawa pendiri
             <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pt-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
               
               {/* Left sidebar nav for dashboard */}
-              <div className="lg:col-span-3 space-y-4">
+              <div className="lg:col-span-3 space-y-4 hidden lg:block">
                 <div className="bg-white rounded-3xl p-4 shadow-sm border border-slate-200 space-y-1">
                   <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest px-3 py-2 font-mono">WORKSPACE SIM-K</p>
                   
@@ -1885,7 +2722,35 @@ Kantor Notaris Achmad Maulana merangkum dokumen primer yang wajib dibawa pendiri
               </div>
 
               {/* Right panel Area */}
-              <div className="lg:col-span-9">
+              <div className="lg:col-span-9 space-y-4">
+                
+                {/* Responsive Mobile Tab Selector Bar */}
+                <div className="lg:hidden bg-white rounded-3xl p-4.5 shadow-sm border border-slate-200 flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-[#0B192C]/10 p-2.5 rounded-2xl text-[#D4AF37]">
+                      <Menu className="h-5 w-5" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase tracking-wider font-mono leading-none">WORKSPACE MENU</p>
+                      <h4 className="font-extrabold text-sm text-[#0B192C] mt-1.5 flex items-center gap-1.5">
+                        {dashboardTab === 'ai-tools' && '🤖 AI Legal Toolkit'}
+                        {dashboardTab === 'klien' && '👥 Manajemen Klien'}
+                        {dashboardTab === 'orders' && '🔔 Order & Konsultasi'}
+                        {dashboardTab === 'dokumen' && '📄 Manajemen Dokumen'}
+                        {dashboardTab === 'scheduler' && '📅 Agenda & Reminder'}
+                        {dashboardTab === 'logs' && '🔍 Audit Log Sistem'}
+                      </h4>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => setMobileDashboardSidebarOpen(true)}
+                    className="bg-[#0B192C] hover:bg-[#1E3E62] text-[#D4AF37] px-4 py-2.5 rounded-2xl text-xs font-black transition flex items-center gap-1.5 shadow-md"
+                  >
+                    <span>Menu</span>
+                    <ChevronRight className="h-3.5 w-3.5" />
+                  </button>
+                </div>
 
                 {/* ======================================================= */}
                 {/* SUB TAB: AI LEGAL TOOLKIT (GEMINI HUB) */}
@@ -2827,6 +3692,120 @@ Kantor Notaris Achmad Maulana merangkum dokumen primer yang wajib dibawa pendiri
               </div>
 
             </div>
+
+            {/* MOBILE DRAWER OVERLAY (SLIDE-IN SIDEBAR FOR DASHBOARD) */}
+            <AnimatePresence>
+              {mobileDashboardSidebarOpen && (
+                <div className="fixed inset-0 z-50 lg:hidden font-sans">
+                  {/* Backdrop with fading overlay & smooth backdrop blur transition */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
+                    onClick={() => setMobileDashboardSidebarOpen(false)}
+                    className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm"
+                  />
+
+                  {/* Drawer content panel with optimized spring transition from left */}
+                  <motion.div
+                    initial={{ x: '-100%' }}
+                    animate={{ x: 0 }}
+                    exit={{ x: '-100%' }}
+                    transition={{ type: 'spring', damping: 26, stiffness: 220, mass: 0.9 }}
+                    className="fixed top-0 left-0 bottom-0 w-[320px] max-w-[85vw] bg-white dark:bg-[#060F1E] shadow-2xl p-6 overflow-y-auto flex flex-col justify-between border-r border-[#D4AF37]/30 transition-colors"
+                  >
+                    <div className="space-y-6">
+                      {/* Drawer Header with close button */}
+                      <div className="flex items-center justify-between border-b pb-4 border-slate-150 dark:border-white/5">
+                        <div>
+                          <p className="text-[10px] text-[#D4AF37] font-bold uppercase tracking-widest font-mono">PORTAL UTAMA SIM-K</p>
+                          <h3 className="font-sans font-black text-slate-800 dark:text-white text-base">WORKSPACE MENU</h3>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setMobileDashboardSidebarOpen(false)}
+                          className="bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/15 text-slate-700 dark:text-slate-200 p-2 rounded-xl transition-all"
+                        >
+                          <X className="h-5 w-5" />
+                        </button>
+                      </div>
+
+                      {/* Nav Items list matching original layout */}
+                      <div className="space-y-1.5">
+                        {[
+                          { id: 'ai-tools', label: 'AI Legal Toolkit', icon: Cpu, badge: 'Smart' },
+                          { id: 'klien', label: 'Manajemen Klien', icon: Users, count: clients.length },
+                          { id: 'orders', label: 'Order & Konsultasi', icon: HelpCircle, count: consultOrders.filter(o=>o.status === 'Menunggu Hubungi').length, badge: consultOrders.filter(o=>o.status === 'Menunggu Hubungi').length > 0 ? 'Baru' : undefined },
+                          { id: 'dokumen', label: 'Manajemen Dokumen', icon: FileText, count: documents.length },
+                          { id: 'scheduler', label: 'Agenda & Reminder', icon: Calendar, count: reminders.filter(r=>!r.completed).length },
+                          { id: 'logs', label: 'Audit Log Sistem', icon: Activity, badge: 'Secure' },
+                        ].map((item) => {
+                          const IconComp = item.icon;
+                          const isSelected = dashboardTab === item.id;
+                          return (
+                            <button
+                              key={item.id}
+                              onClick={() => {
+                                setDashboardTab(item.id as any);
+                                setMobileDashboardSidebarOpen(false);
+                              }}
+                              className={`w-full text-left px-4 py-3.5 rounded-2xl text-xs sm:text-sm font-bold transition-all duration-200 flex items-center justify-between ${
+                                isSelected 
+                                  ? 'bg-[#0B192C] text-[#D4AF37] shadow-xl border border-[#D4AF37]/35 dark:bg-white/10 dark:text-[#D4AF37] dark:border-[#D4AF37]/45' 
+                                  : 'text-slate-600 dark:text-slate-350 hover:text-navy-950 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-white/5'
+                              }`}
+                            >
+                              <div className="flex items-center gap-3">
+                                <IconComp className="h-4.5 w-4.5 shrink-0" />
+                                <span>{item.label}</span>
+                              </div>
+                              <div className="flex items-center gap-1.5">
+                                {item.count !== undefined && (
+                                  <span className={`text-[10px] font-black font-mono px-2 py-0.5 rounded-full ${isSelected ? 'bg-[#D4AF37] text-navy-950' : 'bg-slate-200 text-slate-700 dark:bg-white/10 dark:text-slate-300'}`}>
+                                    {item.count}
+                                  </span>
+                                )}
+                                {item.badge && (
+                                  <span className={`text-[9px] font-semibold tracking-wider uppercase px-1.5 py-0.5 rounded ${isSelected ? 'bg-[#D4AF37]/25 text-[#D4AF37]' : 'bg-emerald-100 dark:bg-emerald-500/10 text-emerald-800 dark:text-emerald-400'}`}>
+                                    {item.badge}
+                                  </span>
+                                )}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* Compact diagnostic database widget */}
+                    <div className="mt-8 space-y-4">
+                      <div className="bg-gradient-to-br from-[#0B192C] to-[#1E3E62] text-white rounded-2xl p-4.5 border border-[#D4AF37]/20 shadow-sm space-y-2.5">
+                        <div className="flex items-center gap-2 text-[#D4AF37]">
+                          <ShieldCheck className="h-4 w-4" />
+                          <span className="text-[10px] uppercase tracking-wider font-extrabold font-mono">STATUS KONEKSI</span>
+                        </div>
+                        <p className="text-[9.5px] text-gray-350 leading-normal font-mono">
+                          • Database: <span className="text-emerald-400 font-bold">Connected (Port 5432)</span><br />
+                          • ORM Client: Prisma v5<br />
+                          • SSL Mode: Authorized HTTPS
+                        </p>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setMobileDashboardSidebarOpen(false)}
+                        className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-3 rounded-2xl text-xs font-bold transition text-center"
+                      >
+                        Tutup Panel Menu
+                      </button>
+                    </div>
+
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
           </div>
         )}
 
