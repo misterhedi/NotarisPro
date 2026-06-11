@@ -1,0 +1,6 @@
+{
+  "name": "Notaris Pro - Kantor Digital",
+  "description": "Platform digital hukum premium khsusus Kantor Notaris & PPAT dengan Website Publik SEO, Dashboard Mandiri Manajemen Klien/Dokumen (SIM-K), dan AI Legal Assistant untuk pembuatan draft akta & analisis risiko otomatis.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

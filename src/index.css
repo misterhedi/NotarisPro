@@ -1,0 +1,285 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:ital,wght@0,100..800;1,100..800&family=Space+Grotesk:wght@0,300..700;1,300..700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+  --font-display: "Space Grotesk", sans-serif;
+}
+
+@layer base {
+  body {
+    background-color: #F8F9FA !important;
+    color: #1A1A1A;
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+}
+
+/* ==========================================
+   CLEAN UTILITY / MINIMAL THEME OVERRIDES
+   ========================================== */
+
+/* Overwrite the default theme elements to use the specified palette:
+   - Primary Dark Blue / Navy: #0A192F (replaced from #0B192C)
+   - Gold Accent: #C5A059 (replaced from #D4AF37)
+   - Accent Gradient Tail: #E2C275 (replaced from #AA7C11)
+*/
+
+/* --- Background Color Overrides --- */
+.bg-\[\#0B192C\] {
+  background-color: #0A192F !important;
+}
+.bg-\[\#0B192C\]\/95 {
+  background-color: rgba(10, 25, 47, 0.95) !important;
+}
+.bg-\[\#0B192C\]\/80 {
+  background-color: rgba(10, 25, 47, 0.8) !important;
+}
+.bg-\[\#0B192C\]\/5 {
+  background-color: rgba(10, 25, 47, 0.05) !important;
+}
+.bg-\[\#D4AF37\] {
+  background-color: #C5A059 !important;
+}
+.bg-\[\#D4AF37\]\/10 {
+  background-color: rgba(197, 160, 89, 0.1) !important;
+}
+.bg-\[\#D4AF37\]\/20 {
+  background-color: rgba(197, 160, 89, 0.2) !important;
+}
+.bg-\[\#F8FAFC\] {
+  background-color: #F8F9FA !important;
+}
+.hover\:bg-\[\#0B192C\]:hover {
+  background-color: #0A192F !important;
+}
+.hover\:bg-\[\#D4AF37\]:hover {
+  background-color: #C5A059 !important;
+}
+
+/* --- Text Color Overrides --- */
+.text-\[\#0B192C\] {
+  color: #0A192F !important;
+}
+.text-\[\#D4AF37\] {
+  color: #C5A059 !important;
+}
+.hover\:text-\[\#D4AF37\]:hover {
+  color: #C5A059 !important;
+}
+
+/* --- Border Color Overrides --- */
+.border-\[\#0B192C\] {
+  border-color: #0A192F !important;
+}
+.border-\[\#D4AF37\] {
+  border-color: #C5A059 !important;
+}
+.border-\[\#D4AF37\]\/30 {
+  border-color: rgba(197, 160, 89, 0.3) !important;
+}
+.border-\[\#D4AF37\]\/40 {
+  border-color: rgba(197, 160, 89, 0.4) !important;
+}
+.border-\[\#D4AF37\]\/50 {
+  border-color: rgba(197, 160, 89, 0.5) !important;
+}
+.hover\:border-\[\#D4AF37\]:hover {
+  border-color: #C5A059 !important;
+}
+
+/* --- Selection Color --- */
+.selection\:bg-\[\#D4AF37\]::selection {
+  background-color: #C5A059 !important;
+}
+
+/* --- Gradients (From -> To -> Via) --- */
+.from-\[\#D4AF37\] {
+  --tw-gradient-from: #C5A059 !important;
+  --tw-gradient-stops: var(--tw-gradient-from), #E2C275 !important;
+  --tw-gradient-to: #E2C275 !important;
+}
+.to-\[\#AA7C11\] {
+  --tw-gradient-to: #E2C275 !important;
+}
+.via-\[\#FFF\] {
+  --tw-gradient-to: #FFF !important;
+}
+.to-\[\#E3C16F\] {
+  --tw-gradient-to: #E2C275 !important;
+}
+.from-\[\#1A365D\] {
+  --tw-gradient-from: #0A192F !important;
+}
+.to-\[\#0A1A2F\] {
+  --tw-gradient-to: #050E1A !important;
+}
+.from-\[\#0B192C\] {
+  --tw-gradient-from: #0A192F !important;
+}
+.to-\[\#1E3E62\] {
+  --tw-gradient-to: #11294D !important;
+}
+.from-\[\#1E3E62\]\/5 {
+  --tw-gradient-from: rgba(17, 41, 77, 0.05) !important;
+}
+
+/* --- Layout Utility & Minimal Shadows --- */
+.shadow-lg {
+  box-shadow: 0 4px 12px 0 rgba(0, 0, 0, 0.03), 0 1px 3px 0 rgba(0, 0, 0, 0.02) !important;
+}
+.shadow-xl, .shadow-2xl {
+  box-shadow: 0 10px 25px -5px rgba(10, 25, 47, 0.04), 0 8px 10px -6px rgba(10, 25, 47, 0.04) !important;
+}
+.rounded-3xl {
+  border-radius: 1rem !important; /* 16px is standard rounded-2xl for unified minimal look */
+}
+.border-slate-200 {
+  border-color: #F1F3F5 !important; /* Use softer gray-100/200 borders for clean grid */
+}
+
+/* --- Focus Rings & Interactive States --- */
+.focus\:ring-\[\#D4AF37\]:focus {
+  --tw-ring-color: #C5A059 !important;
+  border-color: #C5A059 !important;
+}
+.focus\:border-\[\#D4AF37\]:focus {
+  border-color: #C5A059 !important;
+}
+
+/* Base animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* ==========================================
+   PERSISTENT DARK THEME CORE OVERRIDES
+   ========================================== */
+
+/* Triggers when document element has '.dark' class name */
+html.dark {
+  color-scheme: dark;
+}
+
+html.dark body {
+  background-color: #030C1B !important;
+  color: #E2E8F0 !important;
+}
+
+/* Dark utility background overrides */
+html.dark .bg-\[\#F8FAFC\], 
+html.dark .bg-slate-50, 
+html.dark .bg-slate-100 {
+  background-color: #060F1E !important;
+}
+
+html.dark .bg-white {
+  background-color: #0B192E !important;
+  color: #E2E8F0 !important;
+}
+
+html.dark .bg-\[\#FAF9F6\] {
+  background-color: #112240 !important;
+}
+
+html.dark .bg-[#FAF9F6] {
+  background-color: #112240 !important;
+}
+
+/* Dark utility card borders */
+html.dark .border-slate-200,
+html.dark .border-slate-100,
+html.dark .border-slate-300/40 {
+  border-color: #1E3A60 !important;
+}
+
+html.dark .divide-slate-100 > :not([hidden]) ~ :not([hidden]) {
+  border-color: #1E3A60 !important;
+}
+
+/* Text coloring overrides */
+html.dark .text-slate-900,
+html.dark .text-gray-900,
+html.dark .text-slate-850,
+html.dark .text-slate-800 {
+  color: #FFFFFF !important;
+}
+
+html.dark .text-slate-700,
+html.dark .text-slate-600 {
+  color: #CCD6F6 !important;
+}
+
+html.dark .text-slate-500,
+html.dark .text-slate-400 {
+  color: #8892B0 !important;
+}
+
+html.dark .text-gray-500,
+html.dark .text-gray-400,
+html.dark .text-[#666] {
+  color: #8892B0 !important;
+}
+
+html.dark .bg-\[\#1E3E62\]\/5 {
+  background-color: rgba(30, 62, 98, 0.15) !important;
+}
+
+/* Input elements inside forms, dropdowns, calendars */
+html.dark input[type="text"],
+html.dark input[type="email"],
+html.dark input[type="tel"],
+html.dark input[type="date"],
+html.dark input[type="time"],
+html.dark select,
+html.dark textarea {
+  background-color: #112240 !important;
+  color: #E2E8F0 !important;
+  border-color: #1E3A60 !important;
+}
+
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: #4B5563 !important;
+}
+
+/* Modal and Tooltips background styling overrides */
+html.dark .fixed.bg-white,
+html.dark .shadow-2xl.bg-white {
+  background-color: #0B192E !important;
+  border-color: #C5A059 !important;
+}
+
+/* Specific elements corrections */
+html.dark .border-slate-200\/60 {
+  border-color: #1E3A60 !important;
+}
+
+html.dark .shadow-sm {
+  box-shadow: 0 4px 20px -2px rgba(2, 12, 27, 0.7) !important;
+}
+
+/* Force dark header to stay elegant dark blue regardless of light mode setting */
+header {
+  background-color: #0A192F !important;
+}
+
+/* Architecture tabs support */
+html.dark .prose pre,
+html.dark .bg-slate-900\/90 {
+  background-color: #020C1F !important;
+}
+
